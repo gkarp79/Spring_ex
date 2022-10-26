@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:security="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean id="customAccessDenied" class="org.bo.security.CustomAccessDeniedHandler"/>
+    <bean id="customLoginSuccess" class="org.bo.security.CustomLoginSuccessHandler"/>
+<!--    <bean id="customNoOpPasswordEncoder" class="org.bo.security.CustomNoOpPasswordEncoder"/>-->
+    <bean id="bCryptPasswordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
+    <bean id="customUserDetailsService" class="org.bo.security.CustomUserDetailsService"/>
+
+
+
+    <security:http auto-config="true" use-expressions="true">
+    <security:intercept-url pattern="/sample/all" access="permitAll"/>
+
+    <security:intercept-url pattern="/sample/member" access="hasRole('ROLE_MEMBER')"/>
+    <security:intercept-url pattern="/board/list" access="hasRole('ROLE_ADMIN')"/>
+    <security:access-denied-handler ref="customAccessDenied"/>
+<!--    <security:form-login/>-->
+        <security:form-login login-page="/customLogin" authentication-success-handler-ref="customLoginSuccess"/>
+<!--    <security:access-denied-handler error-page="/accessError"/>-->
+
+        <security:logout logout-url="/customLogout" invalidate-session="true" delete-cookies="remember-me, JSESSION_ID"/>
+
+        <security:remember-me data-source-ref="dataSource" token-validity-seconds="604800"/>
+
+<!--        <security:csrf disabled="true"/>-->
+</security:http>
+<!--  표현식을 사용하지 않는 경우  -->
+<!--    <security:http auto-config="true" use-expressions="false">-->
+<!--        <security:intercept-url pattern="/sample/userPage" access="ROLE_MEMBER"/>-->
+    <!--        <security:intercept-url pattern="/sample/puserPage" access="ROLE_MANAGER"/>-->
+    <!--        <security:intercept-url pattern="/sample/adminPage" access="ROLE_ADMIN"/>-->
+<!--        <security:form-login/>-->
+<!--    </security:http>-->
+    <security:authentication-manager alias="authenticationManager">
+        <security:authentication-provider user-service-ref="customUserDetailsService">
+<!--            <security:jdbc-user-service data-source-ref="dataSource"/>-->
+<!--            <security:password-encoder ref="customNoOpPasswordEncoder"/>-->
+            <security:password-encoder ref="bCryptPasswordEncoder"/>
+        </security:authentication-provider>
+    </security:authentication-manager>
+
+</beans>
